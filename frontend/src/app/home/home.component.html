@@ -1,0 +1,30 @@
+<div class="container mx-auto">
+  <h1 class=" text-center text-[color:var(--usongcolor)] dark:text-white duration-[2500ms]">HOME</h1>
+  <div class="w-8/12 mx-auto px-4 py-3 flex box-border rounded-lg
+    bg-gray-400 sm:bg-red-400 md:bg-yellow-400 lg:bg-green-400/75 xl:bg-blue-400 ">
+    <div class="w-12 mr-3 flex-shrink-0 rounded-full border-white border-2 overflow-hidden">
+      <img src="https://picsum.photos/200/200?random=1" alt="">
+    </div>
+    <button class="flex-1 bg-gray-200 rounded-full hover:bg-gray-300 active:ring-4">
+      <p class="text-left pl-[1rem] text-[#4b5563] text-md">在想些什麼...</p>
+    </button>
+  </div>
+  <div class="my-3 flex justify-center">
+    <button class="btn-usong mx-2" (click)="hasRootAuthority()">hasRootAuthority API</button>
+    <button class="btn-usong mx-2" (click)="hasRootAndUserAuthority()">hasRootAndUSERAuthority API</button>
+    <button class="btn-usong mx-2" (click)="hasRootRole()">hasRootRole API</button>
+    <button class="btn-usong mx-2" (click)="hasAnyRole()">hasAnyRole API</button>
+  </div>
+  <h2 class="pl-3 text-2xl">
+    UserInfo
+  </h2>
+  <div class="pl-3 text-xl">
+    Name : {{userName}} , <br> Access : {{userAccess}}
+  </div>
+  <div class="pl-3 text-xl">
+    API result:
+  </div>
+  <div class="pl-3 w-full bg-gray-700 text-white">
+    {{apiResult}}
+  </div>
+</div>

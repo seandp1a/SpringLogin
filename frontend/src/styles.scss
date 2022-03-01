@@ -1,0 +1,36 @@
+/* You can add global styles to this file, and also import other style files */
+:root{
+  --usongcolor:#2a2725;
+}
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base{
+  body{
+    @apply dark:bg-gray-900 dark:text-blue-300 transition;
+    transition: 0.8s;
+  }
+  h1{
+    @apply text-6xl my-5;
+  }
+}
+@variants hover{
+  .banana{
+    color:yellow;
+  }
+}
+@layer components{
+  .btn-usong{
+    background-color: var(--usongcolor);
+    @apply  font-bold transition  py-2 px-3 rounded-lg
+            hover:bg-red-800 text-blue-200
+            dark:bg-red-300 dark:text-blue-900
+            dark:hover:bg-red-800 dark:hover:text-white;
+    transition: 0.8s; //只有這個component被影響
+  }
+  .btn-usong:hover{
+    @apply scale-125
+  }
+}

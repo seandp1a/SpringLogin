@@ -1,0 +1,7 @@
+{
+  "/": {
+    "target": "http://localHost:8080",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
