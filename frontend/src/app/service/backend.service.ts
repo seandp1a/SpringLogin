@@ -4,16 +4,18 @@ import { BehaviorSubject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Data } from '../student/student.component';
 import { catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BackendService {
 
-  constructor(private http: HttpClient) {
-
-  }
-  private npmStartServicePath = './MyApp'; // 用proxy相對路徑
+  constructor(
+    private http: HttpClient,
+    private route:Router
+  ) {  }
+  private npmStartServicePath = '.'; // 用proxy相對路徑
   private WEB_SERVICE_PATH = environment.production
     ? environment.API_URL
     : this.npmStartServicePath; // setting webservice path
@@ -25,7 +27,27 @@ export class BackendService {
   * @param body RequestBody
   * @returns
   */
-  public post<T>(apiName: string, body: {},options?:{}) {
+  public post<T>(apiName: string, body: {}, options?: {}) {
+    return this.http.post<T>(
+      this.WEB_SERVICE_PATH + apiName,
+      body,
+      this.generateRequestHeader(options)
+    ).pipe(catchError((err) => {
+      if (err.status === "401") {
+        alert(err.message);
+        this.goToLoginPage();
+      }
+      throw new Error(err.message)
+    }));
+  }
+
+  /**
+  * 發出的Request僅需帶入Header時使用
+  * @param apiName API名稱
+  * @param body RequestBody
+  * @returns
+  */
+  public postWithoutFiltError<T>(apiName: string, body: {}, options?: {}) {
     return this.http.post<T>(
       this.WEB_SERVICE_PATH + apiName,
       body,
@@ -43,7 +65,7 @@ export class BackendService {
    * @param apiName API名稱
    * @returns
    */
-  public get<T>(apiName: string,options?:{}) {
+  public get<T>(apiName: string, options?: {}) {
     return this.http.get<T>(
       this.WEB_SERVICE_PATH + apiName,
       this.generateRequestHeader(options)
@@ -59,22 +81,23 @@ export class BackendService {
   }
 
   /**回傳{ header : HttpHeader }*/
-  private generateRequestHeader(options?:{}) {
+  private generateRequestHeader(options?: {}) {
     const token = this.getJwtToken();
     return options
-    ? Object.assign(options, {
-      headers: new HttpHeaders()
-        .set('Content-Type', 'application/json')
-        .set('Authorization', token)
-    }):{
-      headers: new HttpHeaders()
-        .set('Content-Type', 'application/json')
-        .set('Authorization', token)
-    };
+      ? Object.assign(options, {
+        headers: new HttpHeaders()
+          .set('Content-Type', 'application/json')
+          .set('Authorization', token)
+      }) : {
+        headers: new HttpHeaders()
+          .set('Content-Type', 'application/json')
+          .set('Authorization', token)
+      };
   }
 
   public goToLoginPage() {
-    window.location.href = `${this.WEB_SERVICE_PATH}/login`;
+    this.route.navigate(['login']);
+    // window.location.href = `${this.WEB_SERVICE_PATH}/login`;
   }
 }
 

@@ -8,20 +8,14 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  userName!: String;
-  password!: String;
+  userName!: string;
+  password!: string;
 
   constructor(private loginSvc:LoginService) { }
 
   doLogin() {
-    // this.backendSvc.getRoot().subscribe(res=>{
-    //   console.log(res);
-    // })
     if (!this.userName || !this.password) return;
-    const body = {
-      username: this.userName,
-      password: this.password
-    };
+    this.loginSvc.login(this.userName,this.password);
   }
 
   ngOnInit(): void {

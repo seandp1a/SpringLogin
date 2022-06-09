@@ -2,8 +2,8 @@ package com.usong.login.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.web.session.InvalidSessionStrategy;
-import org.springframework.stereotype.Component;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,18 +13,17 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
-public class MySessionInvalidStrategy  implements InvalidSessionStrategy {
-
+public class MyAuthenticationFailureHandler implements AuthenticationFailureHandler {
     @Override
-    public void onInvalidSessionDetected(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException, ServletException {
+        response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType("application/json;charset=utf-8");
+
         Map<String,String> result = new HashMap<>();
-        result.put("message","登入狀態超時，請重新登入");
+        result.put("message","登入失敗");
         result.put("status","401");
 
-        PrintWriter writer =response.getWriter();
+        PrintWriter writer = response.getWriter();
         writer.write(new ObjectMapper().writeValueAsString(result));
         writer.flush();
         writer.close();

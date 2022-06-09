@@ -10,10 +10,13 @@ import { BackendService } from '../service/backend.service';
 export class NavbarComponent implements OnInit {
   title = 'tailwind-test';
   modelState = 'off';
+  public isLogin :boolean = false;
+
   constructor(
     private loginSvc:LoginService
-  ) { }
+  ) {
 
+  }
   darkMode(mode:string){
     // console.log(document.documentElement);
     if(mode==='on'){
@@ -24,11 +27,12 @@ export class NavbarComponent implements OnInit {
   }
   public logout(){
     this.loginSvc.logout();
-    window.location.href = './login';
   }
 
   ngOnInit(): void {
-
+    this.loginSvc.isLogin.subscribe(res=>{
+      this.isLogin = res;
+    });
   }
 
 }

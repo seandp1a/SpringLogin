@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +24,10 @@ public class MySessionExpiredStrategy implements SessionInformationExpiredStrate
         Map<String,String> result = new HashMap<>();
         result.put("message","登入失敗，您的帳號已經在別的地方登入，當前登入已失效。如果密碼遭到洩露，請立即修改密碼！");
         result.put("status","401");
-        response.getWriter().write(new ObjectMapper().writeValueAsString(result));
 
+        PrintWriter writer =response.getWriter();
+        writer.write(new ObjectMapper().writeValueAsString(result));
+        writer.flush();
+        writer.close();
     }
 }
