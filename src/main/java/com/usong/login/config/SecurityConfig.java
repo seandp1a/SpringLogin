@@ -17,7 +17,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.context.DelegatingApplicationListener;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,9 +35,12 @@ import java.util.Arrays;
 public class SecurityConfig  extends WebSecurityConfigurerAdapter {
     @Autowired
     private MyUserDetailService userDetailsService;
-    @Autowired
-    DelegatingApplicationListener delegatingApplicationListener;
 
+
+    @Autowired
+    MySessionInvalidStrategy mySessionInvalidStrategy;
+    @Autowired
+    MySessionExpiredStrategy mySessionExpiredStrategy;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -71,8 +73,12 @@ public class SecurityConfig  extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
-
-
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+    @Autowired
+    SessionRegistry sessionRegistry;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -84,35 +90,44 @@ public class SecurityConfig  extends WebSecurityConfigurerAdapter {
          * Server 的 Session 也可在此做控制
          * 因為搭配SPA，只有登入成功會由server端進行轉址，後續轉址工作必須交由前端操作
          * */
+        http
+                .sessionManagement()
+//                .invalidSessionStrategy(mySessionInvalidStrategy)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(true);
+//                .expiredSessionStrategy(mySessionExpiredStrategy);
+         http
+                 .exceptionHandling() // exception發生時的處裡
+                 /* 當用戶發出 Request 出現認證異常
+                  * 該異常會先在 ExceptionTranslationFilter 這層被捕獲
+                  * 並調用 handleSpringSecurityException 處裡異常
+                  * 他會判斷是 AuthenticationException 或是 AccessDeniedException
+                  * */
+                 .authenticationEntryPoint(new MyAuthenticationEntryPoint())
+                 .accessDeniedHandler(new MyAccessDeniedHandler())
+                 .and()
+                 .addFilterAt(loginAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                 .authorizeRequests()
+                 // ▼ 要ROLE_前墜
+                 .antMatchers(HttpMethod.GET,"/hasRootAuthority").hasAuthority("ROLE_ROOT")
+                 .antMatchers(HttpMethod.GET,"/hasRootAndUSERAuthority").hasAnyAuthority("ROLE_ROOT,ROLE_USER")
+                 // ▼ 不用ROLE_前墜
+                 .antMatchers(HttpMethod.GET,"/hasRootRole").hasAnyRole("ROOT")
+                 .antMatchers(HttpMethod.GET,"/hasAnyRole").hasAnyRole("ROOT,USER")
+                 .antMatchers("/USER/**").hasAnyAuthority("ROLE_USER")
+                 .antMatchers("/ROOT/**").hasAnyAuthority("ROLE_ROOT")
+                 .antMatchers("/**.js","/**.css","/","/**.ico","/**.txt").permitAll()
+                 .anyRequest().authenticated() // 沒被設置的路徑.無權便禁止訪問，須放在最後一行！
+                 .and()
+                 .logout()
+                 .logoutUrl("/api/logout")
+                 .invalidateHttpSession(true)
+                 .logoutSuccessHandler(new MyLogoutSuccessHandler())
+                 .and().csrf().disable();
 
-       http
-               .exceptionHandling() // exception發生時的處裡
-               /* 當用戶發出 Request 出現認證異常
-                * 該異常會先在 ExceptionTranslationFilter 這層被捕獲
-                * 並調用 handleSpringSecurityException 處裡異常
-                * 他會判斷是 AuthenticationException 或是 AccessDeniedException
-                * */
-               .authenticationEntryPoint(new MyAuthenticationEntryPoint())
-               .accessDeniedHandler(new MyAccessDeniedHandler())
-               .and()
-               .addFilterAt(loginAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-               .authorizeRequests()
-               // ▼ 要ROLE_前墜
-               .antMatchers(HttpMethod.GET,"/hasRootAuthority").hasAuthority("ROLE_ROOT")
-               .antMatchers(HttpMethod.GET,"/hasRootAndUSERAuthority").hasAnyAuthority("ROLE_ROOT,ROLE_USER")
-               // ▼ 不用ROLE_前墜
-               .antMatchers(HttpMethod.GET,"/hasRootRole").hasAnyRole("ROOT")
-               .antMatchers(HttpMethod.GET,"/hasAnyRole").hasAnyRole("ROOT,USER")
-               .antMatchers("/USER/**").hasAnyAuthority("ROLE_USER")
-               .antMatchers("/ROOT/**").hasAnyAuthority("ROLE_ROOT")
-               .antMatchers("/**.js","/**.css","/","/**.ico","/**.txt").permitAll()
-               .anyRequest().authenticated() // 沒被設置的路徑.無權便禁止訪問，須放在最後一行！
-               .and()
-               .logout()
-               .logoutUrl("/api/logout")
-               .logoutSuccessHandler(new MyLogoutSuccessHandler())
-               .and().csrf().disable();
-
+         /*
+         * 此處Session配置
+         * */
     }
 
 

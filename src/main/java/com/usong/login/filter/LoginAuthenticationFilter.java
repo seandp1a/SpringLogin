@@ -35,7 +35,6 @@ public class LoginAuthenticationFilter extends UsernamePasswordAuthenticationFil
     * ContentType 必須是 FormData 且 key&value 必須為 username&password
     * */
 
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         // 登入request 其 ContentType 必須是 json
@@ -60,7 +59,6 @@ public class LoginAuthenticationFilter extends UsernamePasswordAuthenticationFil
                 e.printStackTrace();
                 authRequest = new UsernamePasswordAuthenticationToken("", "");
             } finally {
-
                 setDetails(request, authRequest);
                 // 把 UPAT 物件塞進 AuthenticationManager 物件並返回
                 return this.getAuthenticationManager().authenticate(authRequest);
